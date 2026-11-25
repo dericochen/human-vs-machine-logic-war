@@ -161,7 +161,6 @@ export interface StartMatchInput {
   playerId: string;
   playerName: string;
   avatar: string;
-  maxMode: MaxMode;
 }
 
 export interface StartMatchResponse {
@@ -202,7 +201,8 @@ async function loadBank(): Promise<RoundDefinition[]> {
 export async function startMatch(input: StartMatchInput): Promise<StartMatchResponse> {
   const bank = await loadBank();
   const rounds = selectMatchRounds(bank, randomSeed());
-  const maxResults = buildMaxResults(rounds, input.maxMode);
+  // M.A.X. always plays at maximum ability (exact solver + fastest simulated timing).
+  const maxResults = buildMaxResults(rounds, "expert");
   const sessionId = uuid();
   const startedAt = nowIso();
 
@@ -220,7 +220,7 @@ export async function startMatch(input: StartMatchInput): Promise<StartMatchResp
         player_id: input.playerId,
         player_name: input.playerName,
         avatar: input.avatar,
-        max_mode: input.maxMode,
+        max_mode: "expert",
         status: "active",
         started_at: startedAt,
         current_index: 0,
@@ -252,7 +252,7 @@ export async function startMatch(input: StartMatchInput): Promise<StartMatchResp
       player_id: input.playerId,
       player_name: input.playerName,
       avatar: input.avatar,
-      max_mode: input.maxMode,
+      max_mode: "expert",
       status: "active",
       started_at: startedAt,
       ended_at: null,
@@ -270,7 +270,7 @@ export async function startMatch(input: StartMatchInput): Promise<StartMatchResp
   return {
     sessionId,
     startedAt,
-    maxMode: input.maxMode,
+    maxMode: "expert",
     rounds: rounds.map(toPublicRound),
   };
 }

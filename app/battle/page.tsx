@@ -293,38 +293,30 @@ export default function BattlePage() {
         </div>
       </header>
 
-      <section className="mx-auto grid max-w-6xl gap-6 px-4 pb-16 pt-2 lg:grid-cols-[1.1fr_1fr]">
-        <div className="flex flex-col">
-          <div className="glass mb-4 flex items-center gap-4 rounded-xl px-4 py-3">
-            <div className="flex-1">
-              <div className="text-[11px] uppercase tracking-wide text-inkdim">You</div>
-              <div className="mono text-2xl font-black tabular-nums text-neon">{playerScore}</div>
-            </div>
-            <div className="text-center text-[11px] uppercase tracking-wide" style={{ color: leadColor }}>
-              {lead}
-            </div>
-            <div className="flex-1 text-right">
-              <div className="text-[11px] uppercase tracking-wide text-inkdim">M.A.X.</div>
-              <div className="mono text-2xl font-black tabular-nums text-violet">{maxScore}</div>
-            </div>
+      <section className="mx-auto max-w-6xl px-4 pb-16 pt-2">
+        {/* Scoreboard — always visible, compact */}
+        <div className="glass mb-3 flex items-center gap-4 rounded-xl px-4 py-2.5">
+          <div className="flex-1">
+            <div className="text-[11px] uppercase tracking-wide text-inkdim">You</div>
+            <div className="mono text-2xl font-black tabular-nums text-neon">{playerScore}</div>
           </div>
-
-          <div className="flex items-center gap-4">
-            <MaxCharacter expression={emotion} size={104} />
-            <div className="min-w-0 flex-1">
-              <DialogueBubble line={line} emotion={emotion} />
-              <div className="mt-3">
-                <ConfidenceMeter value={maxConfidence} />
-              </div>
-            </div>
+          <div className="text-center text-[11px] uppercase tracking-wide" style={{ color: leadColor }}>
+            {lead}
           </div>
+          <div className="flex-1 text-right">
+            <div className="text-[11px] uppercase tracking-wide text-inkdim">M.A.X.</div>
+            <div className="mono text-2xl font-black tabular-nums text-violet">{maxScore}</div>
+          </div>
+        </div>
 
-          <div className="mt-6">
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.25fr)] lg:items-start">
+          {/* Grid — the main stage. First on mobile, right column on desktop. */}
+          <div className="order-1 lg:order-2">
             <div className="mb-2 flex items-center justify-between text-xs text-inkdim">
               <span className="uppercase tracking-wide">Find the different emoji</span>
               {flash && (
                 <span
-                  className={`mono font-bold ${
+                  className={`mono text-sm font-bold ${
                     flash === "correct" ? "text-win" : flash === "wrong" ? "text-lose" : "text-inkdim"
                   }`}
                 >
@@ -348,20 +340,31 @@ export default function BattlePage() {
               />
             </div>
           </div>
-        </div>
 
-        <aside className="glass hidden h-fit rounded-xl p-4 lg:block">
-          <h2 className="mb-3 text-sm font-bold text-ink">How to win</h2>
-          <ul className="space-y-2 text-sm text-inkdim">
-            <li>Tap the one emoji that is different from the rest.</li>
-            <li>Faster taps earn a speed bonus; streaks add more.</li>
-            <li>M.A.X. scans the same grid — its time is simulated.</li>
-            <li>12 rounds. 5 minutes. Whoever scores more, wins.</li>
-          </ul>
-          <div className="mt-4 rounded-lg bg-panel-2 p-3 text-xs text-inkdim">
-            <span className="mono text-ink">Difficulty ramp:</span> 2×2 → 3×3 → 4×4 → 5×5, with the odd emoji getting sneakier.
+          {/* M.A.X. panel — below grid on mobile, left column on desktop. */}
+          <div className="order-2 lg:order-1">
+            <div className="glass rounded-xl p-3.5">
+              <div className="flex items-center gap-3">
+                <MaxCharacter expression={emotion} size={88} />
+                <div className="min-w-0 flex-1">
+                  <DialogueBubble line={line} emotion={emotion} />
+                </div>
+              </div>
+              <div className="mt-3">
+                <ConfidenceMeter value={maxConfidence} />
+              </div>
+            </div>
+            <div className="glass mt-4 hidden rounded-xl p-4 lg:block">
+              <h2 className="mb-2 text-sm font-bold text-ink">How to win</h2>
+              <ul className="space-y-2 text-sm text-inkdim">
+                <li>Tap the one emoji that is different from the rest.</li>
+                <li>Faster taps earn a speed bonus; streaks add more.</li>
+                <li>M.A.X. runs at maximum ability — its time is simulated.</li>
+                <li>12 rounds. 5 minutes. Whoever scores more, wins.</li>
+              </ul>
+            </div>
           </div>
-        </aside>
+        </div>
       </section>
     </main>
   );

@@ -6,7 +6,8 @@
 
 import { generateBank } from "../lib/game/bank.ts";
 import { solveGrid } from "../lib/game/oddEmoji.ts";
-import type { Difficulty, MaxMode } from "../lib/game/types.ts";
+import { EMOJI_META } from "../lib/game/emoji.ts";
+import type { Difficulty } from "../lib/game/types.ts";
 
 const bank = generateBank();
 
@@ -45,39 +46,29 @@ for (const r of bank) {
   check(sol.cellIndex === r.oddIndex, `${r.id}: expert solver recovers oddIndex (${r.oddIndex})`);
 }
 
-// 4. Mode ↔ difficulty alignment.
-const MODE_ABOVE: Record<Difficulty, MaxMode> = {
-  easy: "easy",
-  normal: "normal",
-  hard: "hard",
-  expert: "expert",
-};
-const MODE_BELOW: Record<Difficulty, MaxMode | null> = {
-  easy: null,
-  normal: "easy",
-  hard: "normal",
-  expert: "hard",
-};
-
-let wrongMode = 0;
+// 4. Difficulty rules: easy = a genuinely different picture; the rest = the
+//    same emoji family (subtle variant), never a different picture.
+let wrongPicture = 0;
 for (const r of bank) {
-  const solvableMode = MODE_ABOVE[r.difficulty];
-  const sol = solveGrid(r.cells, solvableMode);
-  if (sol.cellIndex !== r.oddIndex) {
-    wrongMode++;
-    check(false, `${r.id}: ${solvableMode} mode should solve but did not`);
+  const baseMeta = EMOJI_META[r.baseEmoji];
+  const oddMeta = EMOJI_META[r.oddEmoji];
+  if (!baseMeta || !oddMeta) {
+    wrongPicture++;
+    check(false, `${r.id}: emoji missing from library`);
+    continue;
   }
-  const below = MODE_BELOW[r.difficulty];
-  if (below) {
-    const belowSol = solveGrid(r.cells, below);
-    if (belowSol.cellIndex === r.oddIndex) {
-      wrongMode++;
-      check(false, `${r.id}: ${below} mode should NOT solve (${r.difficulty}) but did`);
+  if (r.difficulty === "easy") {
+    if (baseMeta.coarse === oddMeta.coarse) {
+      wrongPicture++;
+      check(false, `${r.id}: easy round must use a DIFFERENT picture (same coarse "${baseMeta.coarse}")`);
     }
+  } else if (baseMeta.coarse !== oddMeta.coarse) {
+    wrongPicture++;
+    check(false, `${r.id}: ${r.difficulty} round must stay in the SAME picture family ("${baseMeta.coarse}" vs "${oddMeta.coarse}")`);
   }
 }
-if (wrongMode === 0) {
-  console.log("  OK: mode↔difficulty alignment holds for all rounds");
+if (wrongPicture === 0) {
+  console.log("  OK: easy = different picture, normal/hard/expert = same family (subtle)");
 }
 
 console.log("---");

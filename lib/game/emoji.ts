@@ -93,6 +93,34 @@ export const ULTRA_PAIRS: ReadonlyArray<readonly [string, string]> = [
   ["\u{1F34A}", "\u{1F34B}"],
 ];
 
+// Visually-similar pairs used for NON-easy rounds: same emoji type, subtle
+// difference — never a different picture. Grid size is the difficulty ramp.
+export const TRICKY_PAIRS: ReadonlyArray<readonly [string, string]> = [
+  // faces — same expression, subtle variants
+  ["\u{1F600}", "\u{1F603}"], ["\u{1F600}", "\u{1F604}"], ["\u{1F600}", "\u{1F601}"],
+  ["\u{1F603}", "\u{1F604}"], ["\u{1F603}", "\u{1F601}"], ["\u{1F604}", "\u{1F601}"],
+  ["\u{1F642}", "\u{1F60A}"], ["\u{1F642}", "\u{1F609}"], ["\u{1F60A}", "\u{1F609}"],
+  ["\u{1F602}", "\u{1F923}"], ["\u{1F602}", "\u{1F606}"], ["\u{1F923}", "\u{1F606}"],
+  ["\u{1F60E}", "\u{1F60F}"], ["\u{1F60E}", "\u{1F913}"],
+  ["\u{1F622}", "\u{1F625}"], ["\u{1F622}", "\u{1F62D}"], ["\u{1F625}", "\u{1F62D}"],
+  ["\u{1F60D}", "\u{1F970}"], ["\u{1F60D}", "\u{1F618}"], ["\u{1F970}", "\u{1F618}"],
+  ["\u{1F62E}", "\u{1F62F}"], ["\u{1F62E}", "\u{1F632}"], ["\u{1F62F}", "\u{1F632}"],
+  ["\u{1F621}", "\u{1F92C}"], ["\u{1F621}", "\u{1F620}"], ["\u{1F92C}", "\u{1F620}"],
+  // fruit — same fruit, colour variant
+  ["\u{1F34E}", "\u{1F34F}"], ["\u{1F34A}", "\u{1F34B}"],
+  // animals — same animal
+  ["\u{1F436}", "\u{1F415}"], ["\u{1F431}", "\u{1F408}"],
+  // nature — same type
+  ["\u{2B50}", "\u{1F31F}"], ["\u{1F319}", "\u{1F31B}"], ["\u{2600}\u{FE0F}", "\u{1F31E}"],
+  // shapes — same shape, colour variants
+  ["\u{1F534}", "\u{1F7E0}"], ["\u{1F7E0}", "\u{1F7E1}"], ["\u{1F7E1}", "\u{1F7E2}"],
+  ["\u{1F7E2}", "\u{1F535}"], ["\u{1F535}", "\u{1F7E3}"], ["\u{1F534}", "\u{1F535}"], ["\u{1F7E3}", "\u{1F534}"],
+  ["\u{1F7E5}", "\u{1F7E7}"], ["\u{1F7E7}", "\u{1F7E8}"], ["\u{1F7E8}", "\u{1F7E9}"],
+  ["\u{1F7E9}", "\u{1F7E6}"], ["\u{1F7E6}", "\u{1F7EA}"], ["\u{1F7E5}", "\u{1F7E9}"], ["\u{1F7EA}", "\u{1F7E5}"],
+  ["\u{2764}\u{FE0F}", "\u{1F9E1}"], ["\u{2764}\u{FE0F}", "\u{1F49B}"], ["\u{1F9E1}", "\u{1F49B}"],
+  ["\u{1F49B}", "\u{1F49A}"], ["\u{1F49A}", "\u{1F499}"], ["\u{1F499}", "\u{1F49C}"], ["\u{2764}\u{FE0F}", "\u{1F499}"],
+];
+
 const ULTRA_GROUP = new Map<string, number>();
 ULTRA_PAIRS.forEach((pair, i) => {
   ULTRA_GROUP.set(pair[0], i);
@@ -100,14 +128,9 @@ ULTRA_PAIRS.forEach((pair, i) => {
 });
 
 const BY_COARSE = new Map<string, string[]>();
-const BY_FINE = new Map<string, Map<string, string[]>>();
 for (const [coarse, fines] of Object.entries(RAW)) {
   const all: string[] = [];
-  for (const [fine, glyphs] of Object.entries(fines)) {
-    if (!BY_FINE.has(coarse)) BY_FINE.set(coarse, new Map());
-    BY_FINE.get(coarse)!.set(fine, glyphs);
-    all.push(...glyphs);
-  }
+  for (const glyphs of Object.values(fines)) all.push(...glyphs);
   BY_COARSE.set(coarse, all);
 }
 
@@ -144,49 +167,24 @@ export interface EmojiPair {
   tier: Difficulty;
 }
 
-/** Pick a (base, odd) emoji pair appropriate for the difficulty. */
+/**
+ * Pick a (base, odd) pair for a round.
+ *  - easy: a genuinely different emoji (different category / picture).
+ *  - normal/hard/expert: a visually-similar pair only — same emoji type, subtle
+ *    difference (never a different picture). Grid size is the difficulty ramp;
+ *    hard/expert draw from the closest "ultra" pairs.
+ */
 export function generatePair(difficulty: Difficulty, rng: Rng): EmojiPair {
-  switch (difficulty) {
-    case "easy": {
-      const coarses = Array.from(BY_COARSE.keys());
-      const a = rng.pick(coarses);
-      let b = rng.pick(coarses);
-      while (b === a) b = rng.pick(coarses);
-      const base = rng.pick(BY_COARSE.get(a)!);
-      const odd = rng.pick(BY_COARSE.get(b)!);
-      return { base, odd, tier: "easy" };
-    }
-    case "normal": {
-      const coarse = rng.pick(Array.from(BY_FINE.keys()));
-      const fines = Array.from(BY_FINE.get(coarse)!.keys());
-      const fa = rng.pick(fines);
-      let fb = rng.pick(fines);
-      while (fb === fa) fb = rng.pick(fines);
-      const base = rng.pick(BY_FINE.get(coarse)!.get(fa)!);
-      const odd = rng.pick(BY_FINE.get(coarse)!.get(fb)!);
-      return { base, odd, tier: "normal" };
-    }
-    case "hard": {
-      // Same coarse + fine, two different glyphs that are NOT an ultra pair.
-      const candidates: Array<[string, string]> = [];
-      for (const fines of BY_FINE.values()) {
-        for (const glyphs of fines.values()) {
-          for (let i = 0; i < glyphs.length; i++) {
-            for (let j = i + 1; j < glyphs.length; j++) {
-              const p: [string, string] = [glyphs[i], glyphs[j]];
-              const g0 = ULTRA_GROUP.get(p[0]);
-              const g1 = ULTRA_GROUP.get(p[1]);
-              if (g0 === undefined || g0 !== g1) candidates.push(p);
-            }
-          }
-        }
-      }
-      const pair = rng.pick(candidates);
-      return rng.chance(0.5) ? { base: pair[0], odd: pair[1], tier: "hard" } : { base: pair[1], odd: pair[0], tier: "hard" };
-    }
-    case "expert": {
-      const pair = rng.pick(ULTRA_PAIRS);
-      return rng.chance(0.5) ? { base: pair[0], odd: pair[1], tier: "expert" } : { base: pair[1], odd: pair[0], tier: "expert" };
-    }
+  if (difficulty === "easy") {
+    const coarses = Array.from(BY_COARSE.keys());
+    const a = rng.pick(coarses);
+    let b = rng.pick(coarses);
+    while (b === a) b = rng.pick(coarses);
+    return { base: rng.pick(BY_COARSE.get(a)!), odd: rng.pick(BY_COARSE.get(b)!), tier: "easy" };
   }
+  const pool = difficulty === "normal" ? TRICKY_PAIRS : ULTRA_PAIRS;
+  const pair = rng.pick(pool);
+  return rng.chance(0.5)
+    ? { base: pair[0], odd: pair[1], tier: difficulty }
+    : { base: pair[1], odd: pair[0], tier: difficulty };
 }
