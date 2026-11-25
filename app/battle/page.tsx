@@ -49,6 +49,7 @@ export default function BattlePage() {
   const [line, setLine] = useState("Ready when you are.");
   const [reveal, setReveal] = useState<{ oddIndex: number; pickedIndex: number | null } | null>(null);
   const [flash, setFlash] = useState<AnswerOutcome | null>(null);
+  const [picking, setPicking] = useState<{ cell: number | null } | null>(null);
 
   // player + max counters (for dialogue context)
   const [playerCorrect, setPlayerCorrect] = useState(0);
@@ -107,6 +108,7 @@ export default function BattlePage() {
   async function submit(cellIndex: number | null) {
     if (phase !== "playing" || answeringRef.current || reveal) return;
     answeringRef.current = true;
+    setPicking({ cell: cellIndex });
     const round = rounds[currentIndex];
     const prePlayer = latest.current.playerScore;
     const preMax = latest.current.maxScore;
@@ -134,6 +136,7 @@ export default function BattlePage() {
       setMaxConfidence(res.maxConfidence);
       setReveal({ oddIndex: res.oddIndex, pickedIndex: cellIndex });
       setFlash(res.outcome);
+      setPicking(null);
 
       audio.play(res.outcome === "correct" ? "correct" : res.outcome === "wrong" ? "wrong" : "click");
 
@@ -164,9 +167,10 @@ export default function BattlePage() {
           }
           answeringRef.current = false;
         }
-      }, 950);
+      }, 720);
     } catch (e) {
       answeringRef.current = false;
+      setPicking(null);
       setError(e instanceof Error ? e.message : "Connection issue. Check your network.");
     }
   }
@@ -328,9 +332,10 @@ export default function BattlePage() {
               cells={round?.cells ?? []}
               gridSize={round?.gridSize ?? 2}
               onPick={submit}
-              disabled={!!reveal}
+              disabled={picking !== null || !!reveal}
               oddIndex={reveal?.oddIndex ?? null}
               pickedIndex={reveal?.pickedIndex ?? null}
+              pendingIndex={picking?.cell ?? null}
             />
             <div className="mt-3">
               <QuestionTimer
