@@ -16,16 +16,24 @@ Open http://localhost:3000. Matches, leaderboard and stats are kept in memory fo
 ### 2.1 Create a Supabase project
 
 1. Go to [supabase.com](https://supabase.com) and create a project.
-2. Copy your **Project URL**, **anon key**, and **service_role key** (Project Settings → API).
+2. Copy your **Project URL**, **anon/public key**, and **service_role/secret key** (Project Settings → API). Newer projects show these as `sb_publishable_...` and `sb_secret_...` — both formats work.
 
 ### 2.2 Apply the schema + seed
 
 Run these two files in the Supabase SQL editor, in order:
 
-1. `supabase/migrations/0001_init.sql` — tables, indexes, RLS, triggers, realtime.
+1. `supabase/migrations/0001_init.sql` — tables, indexes, RLS, triggers, realtime, grants.
 2. `supabase/migrations/0002_seed_bank.sql` — 100 validated rounds (auto-generated).
 
 > The seed file is regenerated idempotently with `pnpm run seed:bank`. It uses `ON CONFLICT (id) DO NOTHING`.
+
+> **Automated option:** with a Supabase personal access token (starts with `sbp_`) you can apply both files from the terminal:
+>
+> ```bash
+> SUPABASE_ACCESS_TOKEN=sbp_xxx node scripts/run-migrations.mjs
+> ```
+>
+> (Optionally set `SUPABASE_PROJECT_REF`; it defaults to the bundled project.)
 
 ### 2.3 Configure environment variables
 
