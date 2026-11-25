@@ -1,0 +1,154 @@
+/* ============================================================
+   Hallmark v2.0.0 · genre playful · theme: "Logic War" (custom)
+   Direction: cyberpunk-minimal esports. Neon cyan primary, violet
+   secondary, red alarm accent — used as solid glows, never a
+   cyan→violet gradient. All colour/font through :root tokens.
+   ============================================================ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* surfaces */
+  --void: #05070d;
+  --panel: #0b0f19;
+  --panel-2: #111726;
+  --line: rgba(148, 163, 184, 0.16);
+
+  /* ink */
+  --ink: #e6edf7;
+  --ink-dim: #8b98ad;
+  --ink-faint: #5b6678;
+
+  /* accents */
+  --neon: #22d3ee;
+  --neon-soft: rgba(34, 211, 238, 0.35);
+  --violet: #8b5cf6;
+  --violet-soft: rgba(139, 92, 246, 0.4);
+  --alarm: #f43f5e;
+  --gold: #fbbf24;
+  --win: #34d399;
+  --lose: #f43f5e;
+
+  /* fonts */
+  --font-sans: ui-sans-serif, system-ui, "Segoe UI", -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --font-display: var(--font-sans);
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  color-scheme: dark;
+}
+
+html,
+body {
+  overflow-x: clip;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background:
+    radial-gradient(1200px 600px at 50% -10%, rgba(34, 211, 238, 0.08), transparent 60%),
+    radial-gradient(900px 500px at 90% 110%, rgba(139, 92, 246, 0.08), transparent 60%),
+    var(--void);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--neon-soft);
+  color: var(--ink);
+}
+
+/* focus ring appears instantly on keyboard focus */
+:focus-visible {
+  outline: 2px solid var(--neon);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ---------- utilities ---------- */
+@layer components {
+  .glass {
+    background: rgba(17, 23, 38, 0.6);
+    border: 1px solid var(--line);
+    backdrop-filter: blur(10px);
+  }
+  .neon-text {
+    color: var(--neon);
+    text-shadow: 0 0 18px var(--neon-soft);
+  }
+  .neon-border {
+    box-shadow: 0 0 0 1px var(--neon-soft), 0 0 24px -6px var(--neon-soft);
+  }
+  .mono {
+    font-family: var(--font-mono);
+  }
+  .grid-line {
+    background-image: linear-gradient(rgba(148, 163, 184, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(148, 163, 184, 0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+}
+
+/* scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.25);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.4);
+}
+
+/* ---------- animations (transform/opacity only) ---------- */
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+@keyframes pulse-soft {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+@keyframes float-y {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+@keyframes blink-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
+.animate-scanline {
+  animation: scanline 3.2s linear infinite;
+}
+.animate-pulse-soft {
+  animation: pulse-soft 2.2s ease-in-out infinite;
+}
+.animate-float {
+  animation: float-y 6s ease-in-out infinite;
+}
+.animate-blink-soft {
+  animation: blink-soft 1.1s steps(2, start) infinite;
+}
+
+/* ---------- reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
