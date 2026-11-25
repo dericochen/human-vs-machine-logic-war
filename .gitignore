@@ -22,10 +22,8 @@ pnpm-debug.log*
 
 # env
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*
+!.env.example
 
 # vercel
 .vercel
@@ -36,3 +34,5 @@ next-env.d.ts.bak
 
 # hallmark
 .hallmark/
+
+.vercel

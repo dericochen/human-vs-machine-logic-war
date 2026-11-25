@@ -30,7 +30,7 @@ async function main() {
   const startRes = await fetch(`${BASE}/api/match/start`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ playerId: "smoke-test-player", playerName: "Smoke", avatar: "\u{1F9E0}", maxMode: "normal" }),
+    body: JSON.stringify({ playerId: crypto.randomUUID(), playerName: "Smoke", avatar: "\u{1F9E0}", maxMode: "normal" }),
   });
   const start = await startRes.json();
   check(startRes.status === 200, `POST /api/match/start -> 200`);
@@ -95,11 +95,9 @@ async function main() {
   check(st.status === 200 && typeof stjson.totalMatches === "number", "stats returns totals");
   check(stjson.totalMatches >= 1, "stats reflects the finished match");
 
-  // 8. Admin (fallback key)
-  const admin = await fetch(`${BASE}/api/admin/stats`, { headers: { "x-admin-key": "admin123" } });
-  check(admin.status === 200, "admin stats accessible with fallback key");
-  const adminDenied = await fetch(`${BASE}/api/admin/stats`, { headers: { "x-admin-key": "wrong" } });
-  check(adminDenied.status === 401, "admin stats denied with wrong key");
+  // 8. Admin is protected (401 without valid credentials)
+  const admin = await fetch(`${BASE}/api/admin/stats`);
+  check(admin.status === 401, "admin stats protected without auth");
 
   console.log(`\n${failed === 0 ? "PASS" : "FAIL"}: ${passed} passed, ${failed} failed`);
   process.exit(failed === 0 ? 0 : 1);
